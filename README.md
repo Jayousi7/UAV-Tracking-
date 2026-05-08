@@ -22,7 +22,7 @@ This project is engineered for production and uses ONNX Runtime to eliminate hea
    ```
 
 ## 2. How to Run the System Step-by-Step
-1. **Download Models:** Download the trained ONNX models from `(https://drive.google.com/drive/folders/1x7lq_nVe8BOSsaC-iIKJOtTVQO0WVc8O?usp=sharing)` and extract them into the `onnx_models/` folder. Ensure `yolo26n_RGB.onnx`, `yolo26s_RGB.onnx`, `DT_RGB.onnx`, and `reid_mobilenetv3.onnx` are directly inside that folder.
+1. **Download Models:** Download the trained ONNX models from [drive](https://drive.google.com/drive/folders/1x7lq_nVe8BOSsaC-iIKJOtTVQO0WVc8O?usp=sharing 'here') and extract them into the `onnx_models/` folder. Ensure `yolo26n_RGB.onnx`, `yolo26s_RGB.onnx`, `DT_RGB.onnx`, and `reid_mobilenetv3.onnx` are directly inside that folder.
 
 ### Option A: Run Natively (Python)
 2. Run the FastAPI server:
