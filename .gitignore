@@ -32,6 +32,7 @@ Thumbs.db
 *.avi
 *.mkv
 *.mov
+*.zip
 
 # Ignore model weights to avoid GitHub 100MB limits.
 # These will be provided via Google Drive.
