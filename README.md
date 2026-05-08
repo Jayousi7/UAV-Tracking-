@@ -1,6 +1,6 @@
 # Tactical Aerial Surveillance & Tracking System
 
-This project is a deep learning-based automated surveillance pipeline designed to process UAV/Drone footage. It performs simultaneous object detection and Multi-Object Tracking (MOT) in real-time, focusing on tactically relevant targets: `Person` and `Vehicle`. This fulfills the project brief and the Advanced Task (Bonus) of simultaneous detection and tracking.
+This project is a deep learning-based automated surveillance pipeline designed to process UAV/Drone footage. It performs simultaneous object detection and Multi-Object Tracking (MOT) in real-time, focusing on tactically relevant targets: `Person` and `Vehicle`. 
 
 ## 1. Installation & Environment Setup
 This project is engineered for production and uses ONNX Runtime to eliminate heavy framework dependencies (like PyTorch).
