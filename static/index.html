@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TACTICAL DRONE SURVEILLANCE</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="scanline"></div>
+    <div class="app">
+        <header id="header">
+            <div class="header-left">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">TACTICAL DRONE SURVEILLANCE</span>
+            </div>
+            <div class="header-right">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">CONNECTING</span>
+            </div>
+        </header>
+
+        <main id="main">
+            <section class="feed-section" id="feedSection">
+                <div class="feed-header">
+                    <span class="section-icon">▸</span> LIVE FEED
+                    <span class="feed-badge" id="feedBadge">STANDBY</span>
+                </div>
+                <div class="feed-container" id="feedContainer">
+                    <canvas id="videoCanvas"></canvas>
+                    <canvas id="overlayCanvas"></canvas>
+                    <div class="hud-corners">
+                        <div class="corner tl"></div>
+                        <div class="corner tr"></div>
+                        <div class="corner bl"></div>
+                        <div class="corner br"></div>
+                    </div>
+                    <div class="crosshair">
+                        <div class="ch-h"></div>
+                        <div class="ch-v"></div>
+                    </div>
+                    <div class="feed-overlay-info">
+                        <span id="overlayModel">--</span>
+                        <span id="overlayTracker">--</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="panel-section" id="panelSection">
+                <div class="panel" id="controlPanel">
+                    <div class="panel-title"><span class="section-icon">▸</span> MISSION CONTROL</div>
+
+                    <div class="control-group">
+                        <label>VIDEO SOURCE</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="file" id="videoUpload" accept="video/mp4,video/x-m4v,video/*" style="display: none;">
+                            <button class="action-btn secondary" id="btnUpload" style="flex: 1;" onclick="document.getElementById('videoUpload').click()">SELECT VIDEO</button>
+                        </div>
+                        <div id="uploadStatus" style="font-size: 9px; color: var(--cyan); margin-top: 4px; text-align: center;">NO VIDEO LOADED</div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>CAMERA TYPE</label>
+                        <div class="toggle-group" id="cameraToggle">
+                            <button class="toggle-btn active" data-value="RGB">RGB</button>
+                            <button class="toggle-btn" data-value="IR">INFRARED</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>TRACKING ENGINE</label>
+                        <select id="trackerSelect">
+                            <option value="ocsort">OC-SORT</option>
+                            <option value="botsort">BoT-SORT</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>MODEL</label>
+                        <select id="modelSelect">
+                            <option value="n">YOLO26-Nano</option>
+                            <option value="s">YOLO26-Small</option>
+                            <option value="DT">DT-Large</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>PROCESSING RATE</label>
+                        <select id="fpsSelect">
+                            <option value="30">30 FPS (Fluid / Max Load)</option>
+                            <option value="15" selected>15 FPS (Tactical / Low Load)</option>
+                        </select>
+                    </div>
+
+                    <div class="control-actions">
+                        <button class="action-btn" id="btnApply">DEPLOY</button>
+                        <button class="action-btn secondary" id="btnPause">PAUSE</button>
+                        <button class="action-btn secondary" id="btnRestart">RESTART</button>
+                    </div>
+                </div>
+
+                <div class="panel" id="intelPanel">
+                    <div class="panel-title"><span class="section-icon">▸</span> INTEL</div>
+                    <div class="stat-grid">
+                        <div class="stat">
+                            <div class="stat-value" id="statFps">--</div>
+                            <div class="stat-label">FPS</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="statTracks">--</div>
+                            <div class="stat-label">ACTIVE</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="statSelected">0</div>
+                            <div class="stat-label">HIGHLIGHTED</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="statFrame">--</div>
+                            <div class="stat-label">FRAME</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" id="targetPanel">
+                    <div class="panel-title"><span class="section-icon">▸</span> TARGET LOG</div>
+                    <div class="target-log" id="targetLog">
+                        <div class="log-entry">System initializing...</div>
+                    </div>
+                </div>
+
+                <div class="panel hint-panel">
+                    <div class="hint">Click on any tracked object to highlight it</div>
+                </div>
+            </aside>
+        </main>
+
+        <footer id="footer">
+            <span id="footerStatus">SYS: Awaiting connection</span>
+            <span id="footerTime"></span>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

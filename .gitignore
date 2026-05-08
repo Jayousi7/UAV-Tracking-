@@ -1,0 +1,39 @@
+# Python environments
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.suo
+*.user
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Project specific
+*.mp4
+*.avi
+*.mkv
+*.mov
+
+# Ignore model weights to avoid GitHub 100MB limits.
+# These will be provided via Google Drive.
+onnx_models/
+*.onnx
