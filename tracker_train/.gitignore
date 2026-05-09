@@ -1,0 +1,17 @@
+# Ignore Python cache and IDE files
+__pycache__/
+.idea/
+.venv/
+
+# Ignore downloaded datasets
+VisDrone/
+hit-uav/
+
+# Ignore model weights and training runs
+models/
+runs/
+
+# Ignore other common training artifacts
+*.pt
+*.onnx
+*.log
