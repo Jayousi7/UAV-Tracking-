@@ -24,20 +24,11 @@ This project is engineered for production and uses ONNX Runtime to eliminate hea
 ## 2. How to Run the System Step-by-Step
 1. **Download Models:** Download the trained ONNX models from [drive](https://drive.google.com/drive/folders/1x7lq_nVe8BOSsaC-iIKJOtTVQO0WVc8O?usp=sharing 'here') and extract them into the `onnx_models/` folder. Ensure `yolo26n_RGB.onnx`, `yolo26s_RGB.onnx`, `DT_RGB.onnx`, and `reid_mobilenetv3.onnx` are directly inside that folder.
 
-### Option A: Run Natively (Python)
 2. Run the FastAPI server:
    ```bash
    python -m uvicorn app:app --host 0.0.0.0 --port 8000
    ```
 3. The terminal will indicate that the server has started.
-4. Open a web browser and navigate to: `http://localhost:8000`
-
-### Option B: Run via Docker (Containerized)
-2. Ensure Docker and Docker Compose are installed on your system.
-3. Build and launch the container in the background:
-   ```bash
-   docker-compose up -d --build
-   ```
 4. Open a web browser and navigate to: `http://localhost:8000`
 
 ## 3. How to Use the Interface
@@ -81,7 +72,3 @@ Click on any tracked bounding box in the video stream. The system will highlight
 * **`index.html`**: The structural layout of the tactical military HUD and control panels.
 * **`style.css`**: Defines the visual design system, including the dark-mode aesthetic, cyan highlights, and responsive layouts.
 * **`app.js`**: The client-side logic. It maintains the WebSocket connection to the server, dynamically renders the video frames onto an HTML Canvas, draws the bounding boxes, and handles the interactive "Target Lock" clicking mechanism.
-
-### Containerization
-* **`Dockerfile`**: Defines the optimized Linux-based container environment, installing core OS dependencies required for video processing (OpenCV).
-* **`docker-compose.yml`**: Allows for one-click deployment of the entire system into an isolated container.
