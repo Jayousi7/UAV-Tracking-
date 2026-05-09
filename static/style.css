@@ -346,7 +346,8 @@ select option {
 }
 
 .control-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 6px;
     margin-top: 14px;
 }
