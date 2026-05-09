@@ -114,7 +114,11 @@ async def websocket_endpoint(websocket: WebSocket):
                     new_model = data.get("model", current_model)
                     new_tracker = data.get("tracker", current_tracker)
                     new_fps = data.get("fps", process_fps)
+                    new_thresh = data.get("threshold", None)
                     process_fps = new_fps
+
+                    if new_thresh is not None:
+                        engine.set_threshold(float(new_thresh))
 
                     if new_model != current_model and new_model in MODELS:
                         engine.switch_model(MODELS[new_model])
@@ -185,12 +189,18 @@ async def websocket_endpoint(websocket: WebSocket):
 
             track_list = []
             for t in tracks:
+                tid = int(t[4])
+                cls = engine.class_memory.get(tid, -1)
+                cls_name = engine.classes.get(cls, '?')
                 track_list.append({
-                    "id": int(t[4]),
+                    "id": tid,
                     "x1": float(t[0]), "y1": float(t[1]),
                     "x2": float(t[2]), "y2": float(t[3]),
+                    "cls": cls_name,
                 })
 
+            person_count = sum(1 for t in track_list if t['cls'] == 'Person')
+            vehicle_count = sum(1 for t in track_list if t['cls'] == 'Car')
             frame_num = int(cap.get(cv.CAP_PROP_POS_FRAMES))
 
             await websocket.send_json({
@@ -198,12 +208,15 @@ async def websocket_endpoint(websocket: WebSocket):
                 "frame": frame_b64,
                 "tracks": track_list,
                 "fps": round(stream_fps, 1),
+                "inferenceMs": round(inference_time * 1000, 1),
                 "frameNum": frame_num,
                 "totalFrames": total_frames,
                 "model": current_model,
                 "tracker": current_tracker,
                 "videoW": frame_w,
                 "videoH": frame_h,
+                "persons": person_count,
+                "vehicles": vehicle_count,
             })
 
             elapsed = time.perf_counter() - t0

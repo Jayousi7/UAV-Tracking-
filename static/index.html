@@ -96,10 +96,16 @@
                         </select>
                     </div>
 
+                    <div class="control-group">
+                        <label>CONFIDENCE <span id="threshValue" style="color: var(--cyan);">0.30</span></label>
+                        <input type="range" id="threshSlider" min="0.05" max="0.90" step="0.05" value="0.30" class="hud-slider">
+                    </div>
+
                     <div class="control-actions">
                         <button class="action-btn" id="btnApply">DEPLOY</button>
                         <button class="action-btn secondary" id="btnPause">PAUSE</button>
                         <button class="action-btn secondary" id="btnRestart">RESTART</button>
+                        <button class="action-btn secondary" id="btnCapture">📷 CAPTURE</button>
                     </div>
                 </div>
 
@@ -111,12 +117,24 @@
                             <div class="stat-label">FPS</div>
                         </div>
                         <div class="stat">
+                            <div class="stat-value" id="statInference">--</div>
+                            <div class="stat-label">INF (ms)</div>
+                        </div>
+                        <div class="stat">
                             <div class="stat-value" id="statTracks">--</div>
                             <div class="stat-label">ACTIVE</div>
                         </div>
                         <div class="stat">
+                            <div class="stat-value" id="statPersons">0</div>
+                            <div class="stat-label">PERSONS</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="statVehicles">0</div>
+                            <div class="stat-label">VEHICLES</div>
+                        </div>
+                        <div class="stat">
                             <div class="stat-value" id="statSelected">0</div>
-                            <div class="stat-label">HIGHLIGHTED</div>
+                            <div class="stat-label">SELECTED</div>
                         </div>
                         <div class="stat">
                             <div class="stat-value" id="statFrame">--</div>

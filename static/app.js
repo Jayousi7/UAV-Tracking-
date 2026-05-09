@@ -18,6 +18,10 @@ class DroneTracker {
         this.modelSize = 'n';
         this.trackerType = 'ocsort';
         this.targetFps = 15;
+        this.threshold = 0.3;
+
+        this.trailHistory = {};
+        this.maxTrailLength = 40;
 
         this.setupCanvas();
         this.setupControls();
@@ -68,7 +72,14 @@ class DroneTracker {
         document.getElementById('btnApply').addEventListener('click', () => this.applyConfig());
         document.getElementById('btnPause').addEventListener('click', () => this.togglePause());
         document.getElementById('btnRestart').addEventListener('click', () => this.restart());
+        document.getElementById('btnCapture').addEventListener('click', () => this.captureScreenshot());
         document.getElementById('videoUpload').addEventListener('change', (e) => this.handleVideoUpload(e));
+
+        const slider = document.getElementById('threshSlider');
+        slider.addEventListener('input', (e) => {
+            this.threshold = parseFloat(e.target.value);
+            document.getElementById('threshValue').textContent = this.threshold.toFixed(2);
+        });
     }
 
     getModelKey() {
@@ -122,6 +133,7 @@ class DroneTracker {
             
             this.videoCtx.drawImage(img, 0, 0, this.canvasW, this.canvasH);
             this.tracks = data.tracks;
+            this.updateTrails(data.tracks);
             this.drawOverlay();
             this.updateStats(data);
             this.trackChanges(data.tracks);
@@ -146,6 +158,25 @@ class DroneTracker {
         const scaleX = this.canvasW / videoW;
         const scaleY = this.canvasH / videoH;
 
+        // Draw trails for selected targets
+        for (const t of this.tracks) {
+            if (!this.selectedIds.has(t.id)) continue;
+            const trail = this.trailHistory[t.id];
+            if (!trail || trail.length < 2) continue;
+            ctx.beginPath();
+            for (let i = 0; i < trail.length; i++) {
+                const x = trail[i].x * scaleX;
+                const y = trail[i].y * scaleY;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = 'rgba(0, 229, 255, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
         for (const t of this.tracks) {
             const x1 = t.x1 * scaleX;
             const y1 = t.y1 * scaleY;
@@ -154,6 +185,7 @@ class DroneTracker {
             const w = x2 - x1;
             const h = y2 - y1;
             const selected = this.selectedIds.has(t.id);
+            const clsLabel = t.cls || '?';
 
             if (selected) {
                 ctx.shadowColor = '#00ff41';
@@ -166,7 +198,7 @@ class DroneTracker {
                 ctx.fillStyle = 'rgba(0, 255, 65, 0.08)';
                 ctx.fillRect(x1, y1, w, h);
 
-                const label = `TGT-${String(t.id).padStart(3, '0')}`;
+                const label = `TGT-${String(t.id).padStart(3, '0')} [${clsLabel}]`;
                 ctx.font = '11px "Share Tech Mono"';
                 const tw = ctx.measureText(label).width;
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -190,8 +222,8 @@ class DroneTracker {
                 ctx.strokeRect(x1, y1, w, h);
 
                 ctx.font = '9px "Share Tech Mono"';
-                ctx.fillStyle = 'rgba(0, 255, 65, 0.3)';
-                ctx.fillText(t.id, x1 + 2, y1 - 3);
+                ctx.fillStyle = 'rgba(0, 255, 65, 0.5)';
+                ctx.fillText(`${t.id} ${clsLabel}`, x1 + 2, y1 - 3);
             }
         }
     }
@@ -256,9 +288,29 @@ class DroneTracker {
         this.prevTrackIds = currentIds;
     }
 
+    updateTrails(tracks) {
+        const activeIds = new Set();
+        for (const t of tracks) {
+            activeIds.add(t.id);
+            const cx = (t.x1 + t.x2) / 2;
+            const cy = (t.y1 + t.y2) / 2;
+            if (!this.trailHistory[t.id]) this.trailHistory[t.id] = [];
+            this.trailHistory[t.id].push({ x: cx, y: cy });
+            if (this.trailHistory[t.id].length > this.maxTrailLength) {
+                this.trailHistory[t.id].shift();
+            }
+        }
+        for (const id in this.trailHistory) {
+            if (!activeIds.has(parseInt(id))) delete this.trailHistory[id];
+        }
+    }
+
     updateStats(data) {
         document.getElementById('statFps').textContent = data.fps;
+        document.getElementById('statInference').textContent = data.inferenceMs;
         document.getElementById('statTracks').textContent = data.tracks.length;
+        document.getElementById('statPersons').textContent = data.persons || 0;
+        document.getElementById('statVehicles').textContent = data.vehicles || 0;
         document.getElementById('statSelected').textContent = this.selectedIds.size;
         document.getElementById('statFrame').textContent = data.frameNum;
     }
@@ -270,11 +322,13 @@ class DroneTracker {
                 type: 'config',
                 model: model,
                 tracker: this.trackerType,
-                fps: this.targetFps
+                fps: this.targetFps,
+                threshold: this.threshold
             }));
             this.selectedIds.clear();
             this.prevTrackIds.clear();
-            this.addLog(`Config: ${model} + ${this.trackerType.toUpperCase()} @ ${this.targetFps}FPS`, 'highlight');
+            this.trailHistory = {};
+            this.addLog(`Config: ${model} + ${this.trackerType.toUpperCase()} @ ${this.targetFps}FPS | Thresh: ${this.threshold}`, 'highlight');
             this.updateFooter(`Deployed: ${model} | ${this.trackerType.toUpperCase()}`);
         }
     }
@@ -329,10 +383,25 @@ class DroneTracker {
             this.ws.send(JSON.stringify({ type: 'restart' }));
             this.selectedIds.clear();
             this.prevTrackIds.clear();
+            this.trailHistory = {};
             document.getElementById('btnPause').textContent = 'PAUSE';
             this.setBadge('live', 'LIVE');
             this.addLog('Feed restarted', 'acquired');
         }
+    }
+
+    captureScreenshot() {
+        const capture = document.createElement('canvas');
+        capture.width = this.canvasW;
+        capture.height = this.canvasH;
+        const capCtx = capture.getContext('2d');
+        capCtx.drawImage(this.videoCanvas, 0, 0);
+        capCtx.drawImage(this.overlayCanvas, 0, 0);
+        const link = document.createElement('a');
+        link.download = `capture_${Date.now()}.png`;
+        link.href = capture.toDataURL('image/png');
+        link.click();
+        this.addLog('Screenshot captured', 'acquired');
     }
 
     setStatus(state, text) {

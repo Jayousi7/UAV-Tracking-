@@ -102,9 +102,10 @@ class InferenceEngine:
     def postprocess(self, outputs, orig_shape):
         predictions = np.atleast_2d(np.squeeze(outputs[0]))
         tracker_input = []
+        class_labels = []
 
         if len(predictions) == 0:
-            return np.empty((0, 5))
+            return np.empty((0, 5)), []
 
         # Check if output is normalized cx, cy, w, h (values <= 1.1)
         # DT models output [cx, cy, w, h] normalized 0-1. YOLO outputs [x1, y1, x2, y2] unnormalized.
@@ -126,8 +127,10 @@ class InferenceEngine:
                 y1 = (y1 - self._lb_pad_y) / self._lb_scale
                 y2 = (y2 - self._lb_pad_y) / self._lb_scale
                 tracker_input.append([x1, y1, x2, y2, score])
+                class_labels.append(int(label))
 
-        return np.array(tracker_input) if tracker_input else np.empty((0, 5))
+        dets = np.array(tracker_input) if tracker_input else np.empty((0, 5))
+        return dets, class_labels
 
     def update_tracker(self, detections, orig_shape, frame=None):
         if self.tracker_type == 'botsort':
@@ -142,9 +145,36 @@ class InferenceEngine:
                 output_results=detections, img_info=orig_shape, img_size=orig_shape
             )
 
+    def set_threshold(self, thresh):
+        """Dynamically update the detection confidence threshold."""
+        self._det_thresh = max(0.05, min(0.95, thresh))
+
+    def _assign_classes(self, tracks, detections, class_labels):
+        """Assign class labels to tracks by matching with detections via IoU."""
+        if len(tracks) == 0 or len(detections) == 0:
+            return
+        for track in tracks:
+            tid = int(track[4])
+            tx1, ty1, tx2, ty2 = track[:4]
+            best_iou, best_cls = 0, -1
+            for i, det in enumerate(detections):
+                dx1, dy1, dx2, dy2 = det[:4]
+                ix1, iy1 = max(tx1, dx1), max(ty1, dy1)
+                ix2, iy2 = min(tx2, dx2), min(ty2, dy2)
+                inter = max(0, ix2 - ix1) * max(0, iy2 - iy1)
+                union = (tx2 - tx1) * (ty2 - ty1) + (dx2 - dx1) * (dy2 - dy1) - inter
+                iou = inter / max(union, 1e-6)
+                if iou > best_iou:
+                    best_iou = iou
+                    best_cls = class_labels[i]
+            if best_cls >= 0:
+                self.class_memory[tid] = best_cls
+
     def process_frame(self, frame):
         orig_shape = (frame.shape[0], frame.shape[1])
         input_tensor = self.preprocess(frame)
         raw_output = self.detect(input_tensor)
-        detections = self.postprocess(raw_output, orig_shape)
-        return self.update_tracker(detections, orig_shape, frame=frame)
+        detections, class_labels = self.postprocess(raw_output, orig_shape)
+        tracks = self.update_tracker(detections, orig_shape, frame=frame)
+        self._assign_classes(tracks, detections, class_labels)
+        return tracks
