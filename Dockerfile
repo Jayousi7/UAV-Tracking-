@@ -12,6 +12,8 @@ WORKDIR /app
 # Copy the requirements file and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# Set library paths so ONNX Runtime can find the pip-installed CUDA/cuDNN libraries
+ENV LD_LIBRARY_PATH=/usr/local/lib/python3.10/site-packages/nvidia/cudnn/lib:/usr/local/lib/python3.10/site-packages/nvidia/cublas/lib:${LD_LIBRARY_PATH}
 
 # Copy the rest of the application code
 COPY . .

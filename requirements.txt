@@ -1,12 +1,12 @@
 # ====== Core Dependencies ======
-numpy>=2.4
-opencv-python>=4.13
-onnxruntime-gpu>=1.26
+numpy>=1.24.0
+opencv-python>=4.8.0
+onnxruntime-gpu>=1.16.0
 
 # ====== Tracking Dependencies ======
 filterpy>=1.4.5
-scipy>=1.17
-lap>=0.5
+scipy>=1.10.0
+lap>=0.4.0
 
 # ====== Web Server & API ======
 fastapi>=0.100.0
@@ -15,5 +15,5 @@ python-multipart>=0.0.6
 websockets>=11.0.0
 
 # ====== NVIDIA CUDA Libraries (cuDNN for GPU acceleration) ======
-nvidia-cudnn-cu12>=9.22
-nvidia-cublas-cu12>=12.9
+nvidia-cudnn-cu12
+nvidia-cublas-cu12
