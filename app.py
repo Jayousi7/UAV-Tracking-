@@ -175,8 +175,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 engine.switch_tracker(current_tracker)
                 continue
 
+            t_inf = time.perf_counter()
             tracks = engine.process_frame(frame)
-            inference_time = time.perf_counter() - t0
+            inference_time = time.perf_counter() - t_inf
             
             # Estimate actual stream FPS based on the sleep budget
             skip_count = int(round(fps_target / process_fps)) - 1 if process_fps < fps_target else 0

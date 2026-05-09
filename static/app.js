@@ -307,10 +307,11 @@ class DroneTracker {
 
     updateStats(data) {
         document.getElementById('statFps').textContent = data.fps;
-        document.getElementById('statInference').textContent = data.inferenceMs;
-        document.getElementById('statTracks').textContent = data.tracks.length;
-        document.getElementById('statPersons').textContent = data.persons || 0;
-        document.getElementById('statVehicles').textContent = data.vehicles || 0;
+        document.getElementById('statInference').textContent = data.inferenceMs || '--';
+        const persons = data.tracks.filter(t => t.cls === 'Person').length;
+        const vehicles = data.tracks.filter(t => t.cls === 'Car').length;
+        document.getElementById('statPersons').textContent = persons;
+        document.getElementById('statVehicles').textContent = vehicles;
         document.getElementById('statSelected').textContent = this.selectedIds.size;
         document.getElementById('statFrame').textContent = data.frameNum;
     }
