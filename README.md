@@ -72,3 +72,19 @@ Click on any tracked bounding box in the video stream. The system will highlight
 * **`index.html`**: The structural layout of the tactical military HUD and control panels.
 * **`style.css`**: Defines the visual design system, including the dark-mode aesthetic, cyan highlights, and responsive layouts.
 * **`app.js`**: The client-side logic. It maintains the WebSocket connection to the server, dynamically renders the video frames onto an HTML Canvas, draws the bounding boxes, and handles the interactive "Target Lock" clicking mechanism.
+
+## 6. Citations & Credits
+
+### Tracking Algorithms
+This project implements modified versions of the following original open-source works:
+[1] N. Aharon, R. Or-El, and T. Hassner, "BoT-SORT: Robust Associations Multi-Object Tracking," arXiv preprint arXiv:2206.14651, 2022. [Online]. Available: https://github.com/NirAharon/BoT-SORT
+[2] J. Cao, J. Pang, X. Weng, R. Khirodkar, and K. Kitani, "Observation-Centric SORT: Rethinking SORT for Robust Multi-Object Tracking," arXiv preprint arXiv:2203.14360, 2022. [Online]. Available: https://github.com/noahcao/OC_SORT
+
+### Datasets
+If you use the datasets associated with this project, please credit the original authors:
+[3] VisDrone Team, "VisDrone-Dataset2023," Kaggle. [Online]. Available: https://www.kaggle.com/datasets/kushagrapandya/visdrone-dataset
+[4] C. Yiit, "Aerial-Traffic-Images," Kaggle. [Online]. Available: https://www.kaggle.com/datasets/cihangiryiit/aerial-traffic-images
+[5] M. Mandal, "Merged Aerial Traffic & VisDrone Dataset," Kaggle. 
+[6] J. Suo, T. Wang, X. Zhang, H. Chen, W. Zhou, and W. Shi, "HIT-UAV: A high-altitude infrared thermal dataset for Unmanned Aerial Vehicle-based object detection," Scientific Data, vol. 10, no. 1, p. 467, 2023. [Online]. Available: https://github.com/suojiashun/HIT-UAV-Infrared-Thermal-Dataset
+
+License Details: See `license.md` in the respective dataset repositories.
