@@ -15,7 +15,7 @@ class DroneTracker {
         this.connected = false;
 
         this.cameraType = 'RGB';
-        this.modelSize = 'n';
+        this.modelSize = 'yolo';
         this.trackerType = 'ocsort';
         this.targetFps = 15;
         this.threshold = 0.3;
@@ -83,8 +83,7 @@ class DroneTracker {
     }
 
     getModelKey() {
-        const prefix = this.modelSize === 'DT' ? 'DT' : `yolo26${this.modelSize}`;
-        return `${prefix}_${this.cameraType}`;
+        return `${this.modelSize}_${this.cameraType}`;
     }
 
     connect() {

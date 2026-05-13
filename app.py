@@ -14,19 +14,17 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 MODELS = {
-    'yolo26n_RGB': 'onnx_models/yolo26n_RGB.onnx',
-    'yolo26s_RGB': 'onnx_models/yolo26s_RGB.onnx',
-    'DT_RGB': 'onnx_models/DT_RGB.onnx',
-    'yolo26n_IR': 'onnx_models/yolo26n_IR.onnx',
-    'yolo26s_IR': 'onnx_models/yolo26s_IR.onnx',
-    'DT_IR': 'onnx_models/DT_IR.onnx',
+    'yolo_RGB': 'onnx_models/yolo_RGB_FP32.onnx',
+    'yolo_IR': 'onnx_models/yolo_IR_FP32.onnx',
+    'rtdtr_RGB': 'onnx_models/rtdtr_RGB_FP32.onnx',
+    'rtdtr_IR': 'onnx_models/rtdtr_IR_FP32.onnx',
 }
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 video_path = None
-engine = InferenceEngine(MODELS['yolo26n_RGB'], tracker_type='ocsort')
+engine = InferenceEngine(MODELS['yolo_RGB'], tracker_type='ocsort')
 
 
 @app.get("/")
@@ -92,7 +90,7 @@ async def websocket_endpoint(websocket: WebSocket):
     frame_delay = 1.0 / fps_target
     total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
     paused = False
-    current_model = 'yolo26n_RGB'
+    current_model = 'yolo_RGB'
     current_tracker = 'ocsort'
     process_fps = 15
 

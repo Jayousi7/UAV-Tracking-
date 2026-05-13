@@ -10,7 +10,7 @@ from .kalman_filter import KalmanFilter
 
 
 class ONNXReID:
-    def __init__(self, model_path="onnx_models/reid_mobilenetv3.onnx"):
+    def __init__(self, model_path="onnx_models/osnet.onnx"):
         import onnxruntime as ort
         providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
         self.session = ort.InferenceSession(model_path, providers=providers)
@@ -18,7 +18,7 @@ class ONNXReID:
 
     def extract(self, img, tlbrs):
         if len(tlbrs) == 0:
-            return np.empty((0, 576), dtype=np.float32)
+            return np.empty((0, 512), dtype=np.float32)
 
         crops = []
         h, w = img.shape[:2]

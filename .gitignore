@@ -34,8 +34,13 @@ Thumbs.db
 *.mov
 *.zip
 
+# Ignore uploaded video files
+uploads/
+
 # Ignore model weights to avoid GitHub 100MB limits.
 # These will be provided via Google Drive.
 onnx_models/
 *.onnx
+
+# Ignore local documentation
 project_docs/
