@@ -40,8 +40,7 @@ The folder must contain the following **6 files**:
 | `yolo_IR_FP32.onnx` | YOLO26s detection model — Infrared (thermal) |
 | `rtdtr_RGB_FP32.onnx` | RT-DETR-l detection model — RGB |
 | `rtdtr_IR_FP32.onnx` | RT-DETR-l detection model — Infrared |
-| `osnet.onnx` | OSNet Re-Identification model (used by BoT-SORT tracker) |
-| `osnet.onnx.data` | OSNet external weight data (must be in the same folder as `osnet.onnx`) |
+| `reid_mobilenetv3.onnx` | MobileNetV3-Small Re-Identification model (used by BoT-SORT) |
 
 ### Step 2 — Start the Server
 ```bash
@@ -67,7 +66,7 @@ The system accepts standard video files (`.mp4`, `.avi`, `.mov`, `.mkv`, `.webm`
 |---|---|
 | **SELECT VIDEO** | Upload a drone footage video file. Processing begins automatically. |
 | **CAMERA TYPE** | Toggle between `RGB` and `INFRARED` to switch detection model variants. |
-| **TRACKING ENGINE** | `OC-SORT` (faster, motion-based) or `BoT-SORT` (uses deep learning Re-ID to recover lost targets). |
+| **TRACKING ENGINE** | `OC-SORT` (faster, motion-based) or `BoT-SORT` (highly accurate, uses deep learning Re-ID via MobileNet to recover lost targets). |
 | **MODEL** | `YOLO26-Small` (fast, lightweight) or `RT-DETR-Large` (higher accuracy, heavier compute). |
 | **PROCESSING RATE** | `30 FPS` for fluid playback, or `15 FPS (Tactical)` for heavier models. |
 | **CONFIDENCE** | Adjust the detection confidence threshold (0.05 – 0.90). |
@@ -109,7 +108,7 @@ Click on any tracked bounding box in the video stream. The selected target will 
 |---|---|
 | `basetrack.py` | Shared state machine logic defining track states: Tracked, Lost, Removed. |
 | `ocsort/` | **OC-SORT** — Observation-Centric SORT. Fast, lightweight tracking using motion prediction and IoU matrices. |
-| `botsort/` | **BoT-SORT** — Robust tracker using deep visual Re-Identification (`osnet.onnx`) and Global Motion Compensation. |
+| `botsort/` | **BoT-SORT** — Robust tracker using deep visual Re-Identification (`reid_mobilenetv3.onnx`) and Global Motion Compensation. |
 
 ### Frontend Interface (`static/`)
 | File | Description |
@@ -119,7 +118,8 @@ Click on any tracked bounding box in the video stream. The selected target will 
 | `app.js` | Client-side logic — WebSocket management, canvas rendering, overlay drawing, target-lock interaction. |
 
 ### Training & Results (`training&results/`)
-Contains standalone scripts for model training, hyperparameter tuning, dataset preparation, and evaluation. **Not required** to run the application. See the README inside that directory for details.
+### Detailed Documentation
+For a deep dive into the mathematical logic, function-level breakdowns, and architecture of each module, see the [Project Docs Folder](./project_docs/).
 
 ## 7. Citations & Credits
 
@@ -131,7 +131,7 @@ This project implements modified versions of the following original open-source 
 [2] J. Cao, J. Pang, X. Weng, R. Khirodkar, and K. Kitani, "Observation-Centric SORT: Rethinking SORT for Robust Multi-Object Tracking," arXiv preprint arXiv:2203.14360, 2022. [Online]. Available: https://github.com/noahcao/OC_SORT
 
 ### Re-Identification Model
-[3] K. Zhou, Y. Yang, A. Cavallaro, and T. Xiang, "Omni-Scale Feature Learning for Person Re-Identification," in ICCV, 2019. [Online]. Available: https://github.com/KaiyangZhou/deep-person-reid
+[3] A. Howard et al., "Searching for MobileNetV3," in ICCV, 2019. (Pre-trained on Market-1501 for Re-ID).
 
 ### Datasets
 If you use the datasets associated with this project, please credit the original authors:

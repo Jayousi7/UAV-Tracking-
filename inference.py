@@ -136,7 +136,7 @@ class InferenceEngine:
         return dets, class_labels
 
     def update_tracker(self, detections, orig_shape, frame=None):
-        if self.tracker_type == 'botsort':
+        if isinstance(self.tracker, BoTSORT):
             stracks = self.tracker.update(detections, frame)
             if len(stracks) > 0:
                 tracks = [[t.tlbr[0], t.tlbr[1], t.tlbr[2], t.tlbr[3], t.track_id]
@@ -144,9 +144,8 @@ class InferenceEngine:
                 return np.array(tracks) if tracks else np.empty((0, 5))
             return np.empty((0, 5))
         else:
-            return self.tracker.update(
-                output_results=detections, img_info=orig_shape, img_size=orig_shape
-            )
+            # OC-SORT
+            return self.tracker.update(detections, orig_shape, orig_shape)
 
     def set_threshold(self, thresh):
         """Dynamically update the detection confidence threshold."""

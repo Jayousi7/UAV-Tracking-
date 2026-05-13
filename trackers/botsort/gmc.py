@@ -4,7 +4,7 @@ import copy
 
 
 class GMC:
-    def __init__(self, method='sparseOptFlow', downscale=2):
+    def __init__(self, method='sparseOptFlow', downscale=4):
         super(GMC, self).__init__()
 
         self.method = method
@@ -62,7 +62,7 @@ class GMC:
             frame = cv2.GaussianBlur(frame, (3, 3), 1.5)
             frame = cv2.resize(frame, (width // self.downscale, height // self.downscale))
 
-        if not self.initializedFirstFrame:
+        if not self.initializedFirstFrame or self.prevFrame.shape != frame.shape:
             self.prevFrame = frame.copy()
             self.initializedFirstFrame = True
             return H
@@ -95,7 +95,7 @@ class GMC:
         keypoints = self.detector.detect(frame, mask)
         keypoints, descriptors = self.extractor.compute(frame, keypoints)
 
-        if not self.initializedFirstFrame:
+        if not self.initializedFirstFrame or self.prevFrame.shape != frame.shape:
             self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.prevDescriptors = copy.copy(descriptors)
@@ -161,7 +161,7 @@ class GMC:
 
         keypoints = cv2.goodFeaturesToTrack(frame, mask=None, **self.feature_params)
 
-        if not self.initializedFirstFrame:
+        if not self.initializedFirstFrame or self.prevFrame.shape != frame.shape:
             self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.initializedFirstFrame = True

@@ -58,12 +58,25 @@ def iou_distance(atracks, btracks):
 
 
 def embedding_distance(tracks, detections, metric='cosine'):
-    cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float64)
+    cost_matrix = np.ones((len(tracks), len(detections)), dtype=np.float64)
     if cost_matrix.size == 0:
         return cost_matrix
-    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float64)
-    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float64)
-    cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))
+
+    t_inds = [i for i, t in enumerate(tracks) if t.smooth_feat is not None]
+    d_inds = [i for i, d in enumerate(detections) if d.curr_feat is not None]
+
+    if len(t_inds) == 0 or len(d_inds) == 0:
+        return cost_matrix
+
+    track_features = np.asarray([tracks[i].smooth_feat for i in t_inds], dtype=np.float64)
+    det_features = np.asarray([detections[i].curr_feat for i in d_inds], dtype=np.float64)
+
+    distances = np.maximum(0.0, cdist(track_features, det_features, metric))
+
+    for i, ti in enumerate(t_inds):
+        for j, dj in enumerate(d_inds):
+            cost_matrix[ti, dj] = distances[i, j]
+
     return cost_matrix
 
 

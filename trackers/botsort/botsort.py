@@ -10,15 +10,18 @@ from .kalman_filter import KalmanFilter
 
 
 class ONNXReID:
-    def __init__(self, model_path="onnx_models/osnet.onnx"):
+    def __init__(self, model_path="onnx_models/reid_mobilenetv3.onnx"):
         import onnxruntime as ort
         providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
         self.session = ort.InferenceSession(model_path, providers=providers)
         self.input_name = self.session.get_inputs()[0].name
+        active = self.session.get_providers()
+        device = "GPU (CUDA)" if 'CUDAExecutionProvider' in active else "CPU"
+        print(f"ReID model (MobileNet) initialized. Device: {device}")
 
     def extract(self, img, tlbrs):
         if len(tlbrs) == 0:
-            return np.empty((0, 512), dtype=np.float32)
+            return np.empty((0, 576), dtype=np.float32)
 
         crops = []
         h, w = img.shape[:2]
@@ -67,7 +70,7 @@ class STrack(BaseTrack):
         if feat is not None:
             self.update_features(feat)
         self.features = deque([], maxlen=feat_history)
-        self.alpha = 0.9
+        self.alpha = 0.8
 
     def update_features(self, feat):
         feat /= (np.linalg.norm(feat) + 1e-6)
@@ -219,7 +222,7 @@ class STrack(BaseTrack):
 class BoTSORT(object):
     def __init__(self, track_high_thresh=0.3, track_low_thresh=0.1,
                  new_track_thresh=0.4, match_thresh=0.8,
-                 track_buffer=50, frame_rate=30,
+                 track_buffer=80, frame_rate=30,
                  cmc_method='sparseOptFlow', with_reid=True,
                  proximity_thresh=0.5, appearance_thresh=0.25):
 
@@ -282,7 +285,6 @@ class BoTSORT(object):
             dets = np.empty((0, 4))
             scores_keep = np.array([])
 
-
         if self.with_reid and len(dets) > 0:
             features_keep = self.reid_model.extract(img, dets)
         else:
@@ -314,9 +316,10 @@ class BoTSORT(object):
         STrack.multi_predict(strack_pool)
 
         # Fix camera motion
-        warp = self.gmc.apply(img, dets)
-        STrack.multi_gmc(strack_pool, warp)
-        STrack.multi_gmc(unconfirmed, warp)
+        if self.gmc.method != 'none':
+            warp = self.gmc.apply(img, dets)
+            STrack.multi_gmc(strack_pool, warp)
+            STrack.multi_gmc(unconfirmed, warp)
 
         # Associate with high score detection boxes
         ious_dists = matching.iou_distance(strack_pool, detections)
