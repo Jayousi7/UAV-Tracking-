@@ -22,6 +22,8 @@ class InferenceEngine:
     def __init__(self, model_path, tracker_type='ocsort', det_thresh=0.3, max_age=50, min_hits=1):
         providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
         self.session = ort.InferenceSession(model_path, providers=providers)
+        active = self.session.get_providers()
+        gpu_active = 'CUDAExecutionProvider' in active
 
         self.tracker_type = tracker_type
         self._det_thresh = det_thresh
@@ -33,7 +35,8 @@ class InferenceEngine:
         self.input_name = self.session.get_inputs()[0].name
         self.output_names = [o.name for o in self.session.get_outputs()]
         self.model_input_type = self.session.get_inputs()[0].type
-        print(f"Model initialized. Precision: {self.model_input_type} | Tracker: {self.TRACKER_TYPES[tracker_type]}")
+        device = "GPU (CUDA)" if gpu_active else "CPU"
+        print(f"Model initialized. Device: {device} | Precision: {self.model_input_type} | Tracker: {self.TRACKER_TYPES[tracker_type]}")
 
         self.class_memory = {}
         self.classes = {0: 'Person', 1: 'Car'}

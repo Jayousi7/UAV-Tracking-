@@ -2,8 +2,17 @@ import asyncio
 import base64
 import json
 import os
+import sys
 import time
 import shutil
+
+# Patch PATH for NVIDIA cuDNN/cuBLAS DLLs from pip packages BEFORE onnxruntime loads.
+_cudnn_bin = os.path.join(sys.prefix, 'Lib', 'site-packages', 'nvidia', 'cudnn', 'bin')
+_cublas_bin = os.path.join(sys.prefix, 'Lib', 'site-packages', 'nvidia', 'cublas', 'bin')
+for _p in (_cudnn_bin, _cublas_bin):
+    if os.path.isdir(_p) and _p not in os.environ.get('PATH', ''):
+        os.environ['PATH'] = _p + os.pathsep + os.environ.get('PATH', '')
+
 import cv2 as cv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File
 from fastapi.staticfiles import StaticFiles

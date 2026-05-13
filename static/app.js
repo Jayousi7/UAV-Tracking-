@@ -31,21 +31,37 @@ class DroneTracker {
 
     setupCanvas() {
         const container = document.getElementById('feedContainer');
+        this.drawOffsetX = 0;
+        this.drawOffsetY = 0;
+        this.drawW = 0;
+        this.drawH = 0;
+
         const resize = () => {
             const rect = container.getBoundingClientRect();
-            const w = rect.width;
-            const h = rect.height;
-            this.videoCanvas.width = w;
-            this.videoCanvas.height = h;
-            this.overlayCanvas.width = w;
-            this.overlayCanvas.height = h;
-            this.canvasW = w;
-            this.canvasH = h;
+            const cw = rect.width;
+            const ch = rect.height;
+            this.videoCanvas.width = cw;
+            this.videoCanvas.height = ch;
+            this.overlayCanvas.width = cw;
+            this.overlayCanvas.height = ch;
+            this.canvasW = cw;
+            this.canvasH = ch;
+            this._updateDrawRegion();
         };
         resize();
         new ResizeObserver(resize).observe(container);
 
         this.overlayCanvas.addEventListener('click', (e) => this.handleClick(e));
+    }
+
+    _updateDrawRegion() {
+        const videoW = this.videoW || 1280;
+        const videoH = this.videoH || 720;
+        const scale = Math.min(this.canvasW / videoW, this.canvasH / videoH);
+        this.drawW = videoW * scale;
+        this.drawH = videoH * scale;
+        this.drawOffsetX = (this.canvasW - this.drawW) / 2;
+        this.drawOffsetY = (this.canvasH - this.drawH) / 2;
     }
 
     setupControls() {
@@ -129,8 +145,13 @@ class DroneTracker {
         img.onload = () => {
             if (data.videoW) this.videoW = data.videoW;
             if (data.videoH) this.videoH = data.videoH;
-            
-            this.videoCtx.drawImage(img, 0, 0, this.canvasW, this.canvasH);
+            this._updateDrawRegion();
+
+            // Clear and draw video centered with original aspect ratio
+            this.videoCtx.fillStyle = '#000';
+            this.videoCtx.fillRect(0, 0, this.canvasW, this.canvasH);
+            this.videoCtx.drawImage(img, this.drawOffsetX, this.drawOffsetY, this.drawW, this.drawH);
+
             this.tracks = data.tracks;
             this.updateTrails(data.tracks);
             this.drawOverlay();
@@ -154,8 +175,10 @@ class DroneTracker {
 
         const videoW = this.videoW || 1280;
         const videoH = this.videoH || 720;
-        const scaleX = this.canvasW / videoW;
-        const scaleY = this.canvasH / videoH;
+        const scaleX = this.drawW / videoW;
+        const scaleY = this.drawH / videoH;
+        const offX = this.drawOffsetX;
+        const offY = this.drawOffsetY;
 
         // Draw trails for selected targets
         for (const t of this.tracks) {
@@ -164,12 +187,12 @@ class DroneTracker {
             if (!trail || trail.length < 2) continue;
             ctx.beginPath();
             for (let i = 0; i < trail.length; i++) {
-                const x = trail[i].x * scaleX;
-                const y = trail[i].y * scaleY;
+                const x = trail[i].x * scaleX + offX;
+                const y = trail[i].y * scaleY + offY;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
-            ctx.strokeStyle = 'rgba(0, 229, 255, 0.5)';
+            ctx.strokeStyle = 'rgba(255, 0, 64, 0.6)';
             ctx.lineWidth = 1.5;
             ctx.setLineDash([4, 4]);
             ctx.stroke();
@@ -177,36 +200,38 @@ class DroneTracker {
         }
 
         for (const t of this.tracks) {
-            const x1 = t.x1 * scaleX;
-            const y1 = t.y1 * scaleY;
-            const x2 = t.x2 * scaleX;
-            const y2 = t.y2 * scaleY;
+            const x1 = t.x1 * scaleX + offX;
+            const y1 = t.y1 * scaleY + offY;
+            const x2 = t.x2 * scaleX + offX;
+            const y2 = t.y2 * scaleY + offY;
             const w = x2 - x1;
             const h = y2 - y1;
             const selected = this.selectedIds.has(t.id);
             const clsLabel = t.cls || '?';
 
             if (selected) {
-                ctx.shadowColor = '#00ff41';
-                ctx.shadowBlur = 12;
-                ctx.strokeStyle = '#00ff41';
+                // Selected target: RED box with glow
+                ctx.shadowColor = '#ff0040';
+                ctx.shadowBlur = 14;
+                ctx.strokeStyle = '#ff0040';
                 ctx.lineWidth = 2.5;
                 ctx.strokeRect(x1, y1, w, h);
 
                 ctx.shadowBlur = 0;
-                ctx.fillStyle = 'rgba(0, 255, 65, 0.08)';
+                ctx.fillStyle = 'rgba(255, 0, 64, 0.1)';
                 ctx.fillRect(x1, y1, w, h);
 
                 const label = `TGT-${String(t.id).padStart(3, '0')} [${clsLabel}]`;
                 ctx.font = '11px "Share Tech Mono"';
                 const tw = ctx.measureText(label).width;
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                ctx.fillRect(x1, y1 - 16, tw + 8, 16);
-                ctx.fillStyle = '#00ff41';
-                ctx.fillText(label, x1 + 4, y1 - 4);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                ctx.fillRect(x1, y1 - 18, tw + 10, 18);
+                ctx.fillStyle = '#ff0040';
+                ctx.fillText(label, x1 + 5, y1 - 5);
 
+                // Corner brackets
                 const cornerLen = Math.min(w, h) * 0.25;
-                ctx.strokeStyle = '#00e5ff';
+                ctx.strokeStyle = '#ff0040';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(x1, y1 + cornerLen); ctx.lineTo(x1, y1); ctx.lineTo(x1 + cornerLen, y1);
@@ -215,14 +240,21 @@ class DroneTracker {
                 ctx.moveTo(x1 + cornerLen, y2); ctx.lineTo(x1, y2); ctx.lineTo(x1, y2 - cornerLen);
                 ctx.stroke();
             } else {
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = 'rgba(0, 255, 65, 0.2)';
-                ctx.lineWidth = 1;
+                // Unselected: bright cyan box
+                ctx.shadowColor = '#00e5ff';
+                ctx.shadowBlur = 6;
+                ctx.strokeStyle = '#00e5ff';
+                ctx.lineWidth = 1.5;
                 ctx.strokeRect(x1, y1, w, h);
+                ctx.shadowBlur = 0;
 
-                ctx.font = '9px "Share Tech Mono"';
-                ctx.fillStyle = 'rgba(0, 255, 65, 0.5)';
-                ctx.fillText(`${t.id} ${clsLabel}`, x1 + 2, y1 - 3);
+                const label = `${t.id} ${clsLabel}`;
+                ctx.font = '10px "Share Tech Mono"';
+                const tw = ctx.measureText(label).width;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                ctx.fillRect(x1, y1 - 14, tw + 6, 14);
+                ctx.fillStyle = '#00e5ff';
+                ctx.fillText(label, x1 + 3, y1 - 3);
             }
         }
     }
@@ -234,17 +266,19 @@ class DroneTracker {
 
         const videoW = this.videoW || 1280;
         const videoH = this.videoH || 720;
-        const scaleX = this.canvasW / videoW;
-        const scaleY = this.canvasH / videoH;
+        const scaleX = this.drawW / videoW;
+        const scaleY = this.drawH / videoH;
+        const offX = this.drawOffsetX;
+        const offY = this.drawOffsetY;
 
         let clicked = null;
         let minArea = Infinity;
 
         for (const t of this.tracks) {
-            const x1 = t.x1 * scaleX;
-            const y1 = t.y1 * scaleY;
-            const x2 = t.x2 * scaleX;
-            const y2 = t.y2 * scaleY;
+            const x1 = t.x1 * scaleX + offX;
+            const y1 = t.y1 * scaleY + offY;
+            const x2 = t.x2 * scaleX + offX;
+            const y2 = t.y2 * scaleY + offY;
 
             if (mx >= x1 && mx <= x2 && my >= y1 && my <= y2) {
                 const area = (x2 - x1) * (y2 - y1);
